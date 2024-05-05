@@ -8,6 +8,7 @@ import socket
 import logging
 from threading import Thread
 from dotenv import dotenv_values
+from datetime import datetime
 
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
@@ -84,10 +85,10 @@ def run_http_server():
 def save_to_db(data):
     client = MongoClient(URI_DB, server_api=ServerApi('1'))
     db = client.CS_final_project
-    # name=Krabat&email=krabat@i.ua&text=Hello  -> {"name": "Krabat", "email": "krabat@i.ua", "text": "Hello "}
     try:
         data = unquote_plus(data)
         parse_data = dict([i.split("=") for i in data.split("&")])
+        parse_data['timestamp'] = datetime.now()  # Add current date and time
         print(parse_data)
         db.messages.insert_one(parse_data)
     except Exception as e:
