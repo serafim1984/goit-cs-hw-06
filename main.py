@@ -88,7 +88,7 @@ def save_to_db(data):
     try:
         data = unquote_plus(data)
         parse_data = dict([i.split("=") for i in data.split("&")])
-        parse_data['timestamp'] = datetime.now()  # Add current date and time
+        parse_data['date'] = datetime.now()  # Add current date and time
         print(parse_data)
         db.messages.insert_one(parse_data)
     except Exception as e:
