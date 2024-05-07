@@ -6,7 +6,7 @@ from pathlib import Path
 import json
 import socket
 import logging
-from threading import Thread
+from multiprocessing import Process
 from dotenv import dotenv_values
 from datetime import datetime
 
@@ -15,7 +15,13 @@ from pymongo.server_api import ServerApi
 
 config = dotenv_values(".env_mongo")
 
-URI_DB = f"mongodb+srv://{config['USER_MDB']}:{config['PASSWORD_MDB']}@cluster0.hyo17fr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+# MongoDB Docker container is running on localhost with the default port
+MONGO_HOST = "localhost"
+MONGO_PORT = 27017
+MONGO_DB = "CS_final_project"
+
+URI_DB = f"mongodb://{MONGO_HOST}:{MONGO_PORT}"
+#URI_DB = f"mongodb://{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB}"
 BASE_DIR = Path(__file__).parent
 
 CHUNK_SIZE = 1024
@@ -83,7 +89,7 @@ def run_http_server():
         httpd.server_close()
 
 def save_to_db(data):
-    client = MongoClient(URI_DB, server_api=ServerApi('1'))
+    client = MongoClient(URI_DB)
     db = client.CS_final_project
     try:
         data = unquote_plus(data)
@@ -95,7 +101,6 @@ def save_to_db(data):
         logging.error(e)
     finally:
         client.close()
-
 
 def run_socket_server():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -112,8 +117,12 @@ def run_socket_server():
         logging.info("Server socket stopped")
         s.close()
 
-
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(threadName)s - %(message)s")
-    Thread(target=run_http_server, name="HTTP_Server").start()
-    Thread(target=run_socket_server, name="SOCKET_Server").start()
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(processName)s - %(message)s")
+    http_process = Process(target=run_http_server, name="HTTP_Server")
+    socket_process = Process(target=run_socket_server, name="SOCKET_Server")
+    http_process.start()
+    socket_process.start()
+    http_process.join()
+    socket_process.join()
+
