@@ -16,7 +16,7 @@ from pymongo.server_api import ServerApi
 config = dotenv_values(".env_mongo")
 
 # MongoDB Docker container is running on localhost with the default port
-MONGO_HOST = "localhost"
+MONGO_HOST = "mongodb"
 MONGO_PORT = 27017
 MONGO_DB = "CS_final_project"
 
